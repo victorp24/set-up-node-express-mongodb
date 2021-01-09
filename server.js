@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const Database = require("./Database.js");
 const express = require('express');
+var cors = require('cors')
 
 var db = new Database('mongodb+srv://admin:admin@cluster0.8jxdu.mongodb.net/testdb?retryWrites=true&w=majority', 'testdb');
 
@@ -44,6 +45,8 @@ app.use('/', express.static(clientApp, { extensions: ['html'] }));
 app.listen(port, () => {
 	console.log(`${new Date()}  App Started. Listening on ${host}:${port}, serving ${clientApp}`);
 });
+
+app.use(cors());
 
 
 app.route('/api/users')
