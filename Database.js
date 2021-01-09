@@ -69,124 +69,20 @@ Database.prototype.getUserByEmail = function(email) {
 Database.prototype.createNewUser = function(user) {
 	return this.connected.then(db => 
 		new Promise((resolve, reject) => {
-			if(!user.hasOwnProperty("firstName") || !user.hasOwnProperty("lastName")
-				|| !user.hasOwnProperty("contactNumber") || !user.hasOwnProperty("email") || !user.hasOwnProperty("password")) {
-				reject(new Error("Cannot add user: user object does not contain all required information"));
-			} else {
-				db.collection('users').insertOne(user, function(err, result) {
-					if(err) {
-						console.log(err);
-					} else {
-						resolve(result.ops[0]);
-					}
-				});
-			}
-
-		})
-	)
-}
-
-
-
-
-Database.prototype.getRoom = function(room_id){
-	return this.connected.then(db =>
-		new Promise((resolve, reject) => {
-			/* TODO: read the chatroom from `db`
-			 * and resolve the result */
-			if(typeof(room_id) == ObjectID) {
-				resolve(db.collection('chatrooms').findOne({_id: room_id}));
-			} else {
-				try {
-					var o_id = new ObjectID(room_id);
-					db.collection('chatrooms').findOne({_id: o_id}, function(err, result) {
-						if(err) {
-							console.log(err);
-						} else {
-							if(result != null) {
-								resolve(result);
-							} else {
-								resolve(db.collection('chatrooms').findOne({_id: room_id}));
-							}
-						}
-					})
-				} catch(e) {
-					/* ignore e for now, e is most likely due to a failed creation of o_id (room_id not in correct format) */
-					resolve(db.collection('chatrooms').findOne({_id: room_id}));
-				}
-			}
-		})
-	)
-}
-
-Database.prototype.addRoom = function(room){
-	return this.connected.then(db => 
-		new Promise((resolve, reject) => {
-			/* TODO: insert a room in the "chatrooms" collection in `db`
-			 * and resolve the newly added room */
-			if(!room.hasOwnProperty("name")) {
-				reject(new Error("Cannot add room: missing 'name' property"));
-			} else {
-				db.collection('chatrooms').insertOne(room, function(err, result) {
-					if(err) {
-						console.log(err);
-					} else {
-						resolve(result.ops[0]);
-					}
-				});
-			}
-
-		})
-	)
-}
-
-Database.prototype.getLastConversation = function(room_id, before){
-	return this.connected.then(db =>
-		new Promise((resolve, reject) => {
-			/* TODO: read a conversation from `db` based on the given arguments
-			 * and resolve if found */
-			var beforeInMilliseconds = (before == undefined) ? Date.now() : before;
-			var query = { timestamp: {$lt: beforeInMilliseconds}, room_id: room_id };
-			db.collection('conversations').find(query).toArray(function (err, result) {
-				if(err) {
-					console.log(err);
+			// check if user with the email already exists
+			db.collection('users').findOne({email: user.email}).then(function(doesUserExist) {
+				if(doesUserExist != null) {
+					reject(new Error("User with the given email already exists."))
 				} else {
-					if(result === undefined || result.length == 0) {
-						resolve(null);
-					} else {
-						var closest = result[0];
-						var timeToBeat = beforeInMilliseconds - result[0].timestamp;
-						for(var i = 1; i < result.length; i++) {
-							var timeDifference = beforeInMilliseconds - result[i].timestamp;
-							if( timeDifference < timeToBeat ) {
-								closest = result[i];
-								timeToBeat = timeDifference;
-							}
+					db.collection('users').insertOne(user, function(err, result) {
+						if(err) {
+							reject(err)
+						} else {
+							resolve(result.ops[0]);
 						}
-						resolve(closest);
-					}
+					});
 				}
 			})
-		})
-	)
-}
-
-Database.prototype.addConversation = function(conversation){
-	return this.connected.then(db =>
-		new Promise((resolve, reject) => {
-			/* TODO: insert a conversation in the "conversations" collection in `db`
-			 * and resolve the newly added conversation */
-			if(!conversation.hasOwnProperty("room_id") || !conversation.hasOwnProperty("timestamp") || !conversation.hasOwnProperty("messages") ) {
-				reject(new Error("Conversation object has at least one missing property"));
-			} else {
-				db.collection('conversations').insertOne(conversation, function(err, result) {
-					if(err) {
-						console.log(err);
-					} else {
-						resolve(result.ops[0]);
-					}
-				})
-			}
 		})
 	)
 }

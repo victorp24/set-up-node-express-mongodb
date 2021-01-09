@@ -10,6 +10,24 @@ function logRequest(req, res, next){
 	next();
 }
 
+// helper function to check if array of fields match the obj's fields
+function isSchemaValid(fields, obj) {
+	for(var i = 0; i < fields.length; i++) {
+		if(!obj.hasOwnProperty(fields[i])) {
+			return false;
+		}
+	}
+	return true;
+}
+
+var userSchemaFields = [
+	"firstName", 
+	"lastName", 
+	"email", 
+	"password", 
+	"contactNumber"
+];
+
 const host = 'localhost';
 const port = 3000;
 const clientApp = path.join(__dirname, 'client');
@@ -28,39 +46,55 @@ app.listen(port, () => {
 });
 
 
-// TODO: Do some filtering so that the password fields don't get returned
-app.route('/users')
+app.route('/api/users')
 	.get(function(req, res, next) {
 		db.getUsers().then(function(allUsers) {
+			for(var i = 0; i < allUsers.length; i++) {
+				delete allUsers[i].password;
+				delete allUsers[i]._id;
+			}
 			res.json(allUsers);
 		})
 	})
 	.post(function (req, res, next) {
 		var jsonBody = req.body;
-		// TODO: add some checks to make sure the JSON body has all the required fields that are defined in our user schema
-		db.createNewUser(jsonBody).then(function(newUser) {
-			res.json(newUser);
-		}, function(err) {
-			res.status(400).send(err.message);
-		});
+		if(isSchemaValid(userSchemaFields, jsonBody)) {
+			db.createNewUser(jsonBody).then(function(newUser) {
+				res.json(newUser);
+			}, function(err) {
+				res.status(400).send(err.message);
+			});
+		} else {
+			res.status(400).send("Cannot add user: user schema mismatch.");
+		}
 	});
 
-app.get('/users/email/:email', function (req, res) {
-	db.getUserByEmail(req.params.email).then(function(user) {
-		if(user != null) {
-			res.json(user);
-		} else {
-			res.status(404).send("No user with the specified email was found");
-		}
-	})
-})
 
-app.get('/users/id/:id', function (req, res) {
+app.get('/api/users/id/:id', function (req, res) {
 	db.getUserById(req.params.id).then(function(user) {
 		if(user != null) {
+			delete user.password;
 			res.json(user);
 		} else {
-			res.status(404).send("No User with the specified ID was found");
+			res.status(404).send("No User with the specified ID was found.");
 		}
 	})
-})
+});
+
+app.post('/api/authenticate', function (req,res) {
+	var jsonBody = req.body;
+	db.getUserByEmail(jsonBody.email).then(function(user) {
+		if(user != null) {
+			if(jsonBody.password === user.password) {
+				res.json(user);
+			} else {
+				res.status(401).send("Invalid email/password credentials.");
+			}
+		} else {
+			res.status(401).send("Given email is not registered.");
+		}
+	})
+});
+
+
+
