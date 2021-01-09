@@ -1,6 +1,14 @@
 # Setting Up Node JS + Express + MongoDB
 Author: Victor Angelo Parangue
 
+## Prerequisites
+
+Make sure you have Node installed on your system. You can verify it is installed by checking your Node version using this command:
+
+`node -v`
+
+You can [install Node from here](https://nodejs.org/en/download/).
+
 ## Install Dependencies (Express)
 
 Our server will use ExpressJS, the most popular NodeJS framework in building web servers. To install it, go to your project's directory and type:
