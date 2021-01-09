@@ -42,6 +42,8 @@ Follow [this guide to set up your first MongoDB database on the cloud using Mong
 
 Once you've created a database on the cloud, grab the database URL and a username/password of a database admin user you have configured in Atlas. You now have set up your development environment for a Node JS + Express + MongoDB backend.
 
+## Boilerplate code
+
 Take a look inside [`server.js`](server.js) for some boilerplate code to use Express. It should help you get started coding your web server.
 
 We can use the `mongodb` library to interact with the database. However, the [API provided by the module](https://mongodb.github.io/node-mongodb-native/3.6/api/) are quite low-level and we want to abstract out these details so we don't have to call the low-level methods all the time. So instead, I have written a `Database` object that will carry out the low-level queries. Check out my [initial implementation of `Database`](Database.js). You need to add more methods here depending on what database queries you want to create for your application.
