@@ -4,12 +4,27 @@ const Database = require("./Database.js");
 const express = require('express');
 var cors = require('cors')
 
-var db = new Database('mongodb+srv://admin:admin@cluster0.8jxdu.mongodb.net/testdb?retryWrites=true&w=majority', 'testdb');
+const DATABASE_NAME = 'testdb';
+const DATABASE_ADMIN_USERNAME = 'admin';
+const DATABASE_ADMIN_PASSWORD = 'admin';
+const DATABASE_URL = 'mongodb+srv://' + DATABASE_ADMIN_USERNAME + ":" + DATABASE_ADMIN_PASSWORD 
+					+ '@cluster0.8jxdu.mongodb.net/' + DATABASE_NAME + '?retryWrites=true&w=majority';
+var db = new Database(DATABASE_URL, DATABASE_NAME);
 
+// helper function to log all incoming requests to the web server
 function logRequest(req, res, next){
 	console.log(`${new Date()}  ${req.ip} : ${req.method} ${req.path}`);
 	next();
 }
+
+// a standard user schema example
+var userSchemaFields = [
+	"firstName", 
+	"lastName", 
+	"email", 
+	"password", 
+	"contactNumber"
+];
 
 // helper function to check if array of fields match the obj's fields
 function isSchemaValid(fields, obj) {
@@ -20,14 +35,6 @@ function isSchemaValid(fields, obj) {
 	}
 	return true;
 }
-
-var userSchemaFields = [
-	"firstName", 
-	"lastName", 
-	"email", 
-	"password", 
-	"contactNumber"
-];
 
 const host = 'localhost';
 const port = 3000;
@@ -46,8 +53,8 @@ app.listen(port, () => {
 	console.log(`${new Date()}  App Started. Listening on ${host}:${port}, serving ${clientApp}`);
 });
 
+// enable all cross-site domain requests (this is a security breach, do not do in actual production-level app)
 app.use(cors());
-
 
 app.route('/api/users')
 	.get(function(req, res, next) {
